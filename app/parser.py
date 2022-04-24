@@ -38,6 +38,7 @@ def get_cathedras() -> list[str]:
 
 
 def get_courses(faculty: str) -> list[str]:
+    """Returns list of courses based on faculty"""
     data = {
         'Faculty': faculty,
         'ChangedNode': 'Faculty',
@@ -47,6 +48,7 @@ def get_courses(faculty: str) -> list[str]:
 
 
 def get_study_types(faculty: str, course: str = '1-й курс') -> list[str]:
+    """Returns type of study (bachelor, master or specialist"""
     data = {
         'Faculty': faculty,
         'Course': course,
@@ -57,6 +59,8 @@ def get_study_types(faculty: str, course: str = '1-й курс') -> list[str]:
 
 
 def get_groups(faculty: str, course: str, study_type: str) -> list[str]:
+    """Returns list of groups from course
+    based on faculty, year and studying type"""
     data = {
         'Faculty': faculty,
         'Course': course,
@@ -65,3 +69,12 @@ def get_groups(faculty: str, course: str, study_type: str) -> list[str]:
     }
     name = 'Group'
     return get_options(name, data)
+
+
+def get_week_schedule(group: str, week_num: int = -1) -> list[str]:
+    """Returns list of days (every day is list of lessons)"""
+    pass
+
+
+if __name__ == '__main__':
+    get_week_schedule('15.06Д-Э03а/19б')
