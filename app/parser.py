@@ -8,15 +8,18 @@ HEADERS = {
 
 
 def get_options(name: str, data: dict[str, str]) -> list[str]:
-    """Requests page and returns all options' values from 
+    """Requests page and returns all options' values from
     the selector with given name"""
     url = 'https://rasp.rea.ru/Schedule/Navigator'
-    r = requests.post(url=url, headers=HEADERS, data=data)
-    if r.status_code != 200:
+    req = requests.post(url=url, headers=HEADERS, data=data)
+    if req.status_code != 200:
         raise RuntimeError('Couldn\'t access the site')
-    soup = BeautifulSoup(r.text, "html.parser")
+    soup = BeautifulSoup(req.text, "html.parser")
     faculties = soup.find(attrs={"name": name})
-    return [option['value'] for option in faculties.find_all('option') if option['value'] not in ('na', '')]
+    return [
+        option['value'] for option in faculties.find_all('option')
+        if option['value'] not in ('na', '')
+    ]
 
 
 def get_faculties() -> list[str]:
@@ -69,12 +72,3 @@ def get_groups(faculty: str, course: str, study_type: str) -> list[str]:
     }
     name = 'Group'
     return get_options(name, data)
-
-
-def get_week_schedule(group: str, week_num: int = -1) -> list[str]:
-    """Returns list of days (every day is list of lessons)"""
-    pass
-
-
-if __name__ == '__main__':
-    get_week_schedule('15.06Д-Э03а/19б')
