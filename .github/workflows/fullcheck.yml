@@ -34,4 +34,4 @@ jobs:
         pylint $(git ls-files '*.py')
     - name: Analysing the code with mypy
       run: |
-        mypy $(git ls-files '*.py')
+        mypy $(git ls-files '*.py') --ignore-missing-imports
