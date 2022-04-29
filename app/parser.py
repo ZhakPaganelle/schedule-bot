@@ -96,20 +96,30 @@ async def get_lesson_info(selection: str, date: str, time_slot: int) -> LessonIn
 
     types = [lesson.find('strong').text for lesson in lessons]
 
-    rooms_raw = [re.findall(r'Аудитория:\s+(\d+) \w+ -\s+(\d+)\s', str(lesson)) for lesson in lessons]
-    rooms = [room[0] if room else room for room in rooms_raw]
+    rooms = [
+        re.findall(r'Аудитория:\s+(\d+) \w+ -\s+(\d+)\s', str(lesson))
+        for lesson in lessons
+    ]
+    rooms = [room[0] if room else room for room in rooms]
     teachers = [re.findall(r'</i> ([\w ]+)</a>', str(lesson)) for lesson in lessons]
-    groups_raw = [re.findall(r'Группа\s+([\w\./\- \d\(\)]+)\s+<br/>', str(lesson)) for lesson in lessons]
-    groups = [group[0] if group else group for group in groups_raw]
+    groups = [
+        re.findall(r'Группа\s+([\w\./\- \d\(\)]+)\s+<br/>', str(lesson))
+        for lesson in lessons
+    ]
+    groups = [group[0] if group else group for group in groups]
 
-    contents = zip(subjects, types, rooms, teachers, groups)
-    headings = ('subject', 'type', 'room', 'teachers', 'group')
-    return [dict(zip(headings, lesson)) for lesson in contents]  # type: ignore
+    return [
+        dict(zip(('subject', 'type', 'room', 'teachers', 'group'), lesson))
+        for lesson in zip(subjects, types, rooms, teachers, groups)
+    ]  # type: ignore
 
 
 async def get_day_info(selection: str, date: str) -> DayInfo:
     """Returns dict of infos about all lessons in current day"""
-    lessons = asyncio.gather(*[get_lesson_info(selection, date, lesson_index) for lesson_index in range(1, 9)])
+    lessons = asyncio.gather(
+        *[get_lesson_info(selection, date, lesson_index)
+        for lesson_index in range(1, 9)]
+    )
     return dict(zip(range(1, 9), await lessons))
 
 
