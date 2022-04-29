@@ -3,6 +3,10 @@ import re
 import requests
 from bs4 import BeautifulSoup
 
+LessonInfo = list[dict[str | int, int | str]]
+DayInfo = dict[int, LessonInfo]
+WeekInfo = dict[str, DayInfo]
+
 HEADERS = {
     'x-requested-with': 'XMLHttpRequest',
 }
@@ -78,49 +82,27 @@ def get_groups(faculty: str, course: str, study_type: str) -> list[str]:
 def get_schedule(group: str, week_num: int = -1, detailed: bool = False) -> list[dict[str | int, int | str]]:
     """Returns list of days with lessons
     Every day is also a list"""
-    week_schedule_req = requests.get(
-        f'https://rasp.rea.ru/Schedule/ScheduleCard?selection={group}&weekNum={week_num}&catfilter=1',
-        headers=HEADERS
-    )
-    week_schedule = BeautifulSoup(week_schedule_req.text, "html.parser")
-    days = week_schedule.find_all('table')
-    days_info = [get_day_info(day, detailed) for day in days]
-    return days_info
+    pass
 
 
-def get_day_info(day, detailed: bool = False) -> dict[str | int, int | str]:
-    day_info = {}
-    date = day.find('h5').text
-    day_info['day_of_the_week'], day_info['date'] = date.split(', ')
-    lessons = day.find_all('tr')[1:]
+def get_lesson_info(group: str, date: str, time_slot: int) -> LessonInfo:
+    params = {'selection': group.lower(), 'date': date, 'timeSlot': time_slot}
+    req = requests.get('https://rasp.rea.ru/Schedule/GetDetails', headers=HEADERS, params=params)  # type: ignore
+    soup = BeautifulSoup(req.text, "html.parser")
+    lessons = [div for div in soup.find_all('div') if div.attrs.get('data-subgroup')]
 
-    # Default empty dictionaries for empty lessons
-    if detailed:
-        for i in range(1, 9):
-            day_info[i] = {}
+    subjects = [lesson.find('h5').text for lesson in lessons]
 
-    for i, lesson in enumerate(lessons, 1):
-        day_info[i] = parse_lesson(lesson, detailed)
-    return day_info
+    types = [lesson.find('strong').text for lesson in lessons]
 
+    rooms = [re.findall(r'Аудитория:\s+(\d+) \w+ -\s+(\d+)\s', str(lesson))[0] for lesson in lessons]
+    teachers = [re.findall(r'</i> ([\w ]+)</a>', str(lesson)) for lesson in lessons]
+    groups = [re.findall(r'Группа\s+([\w\./\- \d\(\)]+)\s+<br/>', str(lesson))[0] for lesson in lessons]
 
-def parse_lesson(lesson, detailed: bool = False) -> dict[str | int, int | str]:
-    cells = lesson.find_all('td')
-    if len(cells) < 2 or not cells[1]:
-        return {}
-    subj_info = ' '.join(
-        [string.strip() if isinstance(string, str)
-         else ' '.join([str(elem) for elem in string.contents])
-         for string in cells[1].contents]
-    )
-    subj_info = re.sub(r'\s+', ' ', subj_info)
-    subj_info = re.sub(r'<br/>', '\n', subj_info)
-    subj_info = re.sub(r'\s+', ' ', subj_info)
-    print(1, subj_info)
-    # keys = ['name', 'lesson_type', 'building', 'room', 'platform']
-    # return dict(zip(keys, subj_info))
-    return {}
+    contents = zip(subjects, types, rooms, teachers, groups)
+    headings = ('subject', 'type', 'room', 'teachers', 'subgroup')
+    return [dict(zip(headings, lesson)) for lesson in contents]  # type: ignore
 
 
 if __name__ == '__main__':
-    print(get_schedule('15.06д-э03а/19б'))
+    print(get_lesson_info('15.06д-э03а/19б', '26.04.2022', 5))
