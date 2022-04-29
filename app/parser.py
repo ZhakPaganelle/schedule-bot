@@ -1,6 +1,5 @@
 """Parser for origin schedule website"""
 import re
-import time
 import aiohttp
 import asyncio
 from bs4 import BeautifulSoup
@@ -84,6 +83,7 @@ async def get_groups(faculty: str, course: str, study_type: str) -> list[str]:
 
 
 async def get_lesson_info(selection: str, date: str, time_slot: int) -> LessonInfo:
+    """Returns info about given lesson"""
     url = 'https://rasp.rea.ru/Schedule/GetDetails'
     params = {'selection': selection.lower(), 'date': date, 'timeSlot': time_slot}
     async with aiohttp.ClientSession() as session:
@@ -108,17 +108,20 @@ async def get_lesson_info(selection: str, date: str, time_slot: int) -> LessonIn
 
 
 async def get_day_info(selection: str, date: str) -> DayInfo:
+    """Returns dict of infos about all lessons in current day"""
     lessons = asyncio.gather(*[get_lesson_info(selection, date, lesson_index) for lesson_index in range(1, 9)])
     return dict(zip(range(1, 9), await lessons))
 
 
 async def get_week_info(selection: str, week_num: int = -1) -> WeekInfo:
+    """Gathers info about all days and lessons in the current week"""
     dates = await get_dates(selection, week_num)
     days = asyncio.gather(*[get_day_info(selection, date) for date in dates])
     return dict(zip(dates, await days))
 
 
 async def get_dates(selection: str, week_num: int = -1) -> set[str]:
+    """Returns dates that are in given studying week"""
     url = 'https://rasp.rea.ru/Schedule/ScheduleCard'
     params = {'selection': selection.lower(), 'weekNum': week_num}
     async with aiohttp.ClientSession() as session:
