@@ -1,7 +1,7 @@
 """Parser for origin schedule website"""
 import re
-import aiohttp
 import asyncio
+import aiohttp
 from bs4 import BeautifulSoup
 
 LessonInfo = list[dict[str | int, int | str]]
