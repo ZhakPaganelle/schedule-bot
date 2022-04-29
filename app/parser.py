@@ -109,9 +109,9 @@ async def get_lesson_info(selection: str, date: str, time_slot: int) -> LessonIn
     groups = [group[0] if group else group for group in groups]
 
     return [
-        dict(zip(('subject', 'type', 'room', 'teachers', 'group'), lesson))
+        dict(zip(('subject', 'type', 'room', 'teachers', 'group'), lesson))  # type: ignore
         for lesson in zip(subjects, types, rooms, teachers, groups)
-    ]  # type: ignore
+    ]
 
 
 async def get_day_info(selection: str, date: str) -> DayInfo:
