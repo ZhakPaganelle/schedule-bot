@@ -135,15 +135,15 @@ async def get_day_info(selection: str, date: str) -> DayInfo:
 
 async def get_week_info(selection: str, week_num: int = -1) -> WeekInfo:
     """Gathers info about all days and lessons in the current week"""
-    dates = sorted(await get_dates(selection, week_num))
-    days = asyncio.gather(*[get_day_info(selection, date) for date in dates])
+    dates = await get_dates(selection, week_num)
+    days = asyncio.gather(*[get_day_info(selection.lower(), date) for date in dates])
     return dict(zip(dates, await days))
 
 
-async def get_dates(selection: str, week_num: int = -1) -> set[str]:
+async def get_dates(selection: str, week_num: int = -1) -> list[str]:
     """Returns dates that are in given studying week"""
     url = 'https://rasp.rea.ru/Schedule/ScheduleCard'
     params = {'selection': selection.lower(), 'weekNum': week_num}
     async with aiohttp.ClientSession() as session:
         async with session.get(url=url, headers=HEADERS, params=params) as schedule:
-            return set(re.findall(r'\d{2}\.\d{2}\.\d{4}', await schedule.text()))
+            return sorted(set(re.findall(r'\d{2}\.\d{2}\.\d{4}', await schedule.text())))

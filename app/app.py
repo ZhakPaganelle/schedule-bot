@@ -57,9 +57,34 @@ async def redirect_to_teacher_schedule(cathedra: str, teacher: str):  # type: ig
         status_code=status.HTTP_302_FOUND)
 
 
-@app.get('/api/schedule/{selection:path}/week/{week_num:int}')
+@app.get('/api/schedule/{selection:path}/date/{date:str}')
+async def send_schedule_date(selection: str, date: str):
+    return await parser.get_day_info(selection, date)
+
+
+@app.get('/api/schedule/{selection:path}/date/{date:str}/lesson/{lesson_id}')
+async def send_lesson_by_date(selection: str, date: str, lesson_id: int):
+    return await parser.get_lesson_info(selection, date, lesson_id)
+
+
+@app.get('/api/schedule/{selection:path}/week/{week_num}/day/{day_num:int}')
+async def send_schedule_week(selection: str, week_num: int, day_num: int):
+    selection = selection.lower()
+    dates = await parser.get_dates(selection, week_num)
+    date = dates[day_num - 1]
+    return await parser.get_day_info(selection, date)
+
+
+@app.get('/api/schedule/{selection:path}/week/{week_num}')
 async def send_schedule_week(selection: str, week_num: int):
-    return await parser.get_week_info(selection, week_num)
+    return await parser.get_week_info(selection.lower(), int(week_num))
+
+
+@app.get('/api/schedule/{selection:path}/week/{week_num}/day/{day_num:int}/lesson/{lesson_id}')
+async def send_lesson_by_week(selection: str, week_num: int, day_num: int, lesson_id: int):
+    dates = await parser.get_dates(selection, week_num)
+    date = dates[day_num - 1]
+    return await parser.get_lesson_info(selection, date, lesson_id)
 
 
 @app.get('/api/schedule/{selection:path}')
