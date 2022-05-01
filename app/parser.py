@@ -48,6 +48,16 @@ async def get_cathedras() -> list[str]:
     return await get_options(name, data)
 
 
+async def get_teachers(cathedra: str) -> list[str]:
+    """Returns list of all teachers from given cathedra"""
+    data = {
+        'Cathedra': cathedra,
+        'ChangedNode': 'Cathedra',
+    }
+    name = 'Teacher'
+    return await get_options(name, data)
+
+
 async def get_courses(faculty: str) -> list[str]:
     """Returns list of courses based on faculty"""
     data = {
