@@ -128,14 +128,14 @@ async def get_day_info(selection: str, date: str) -> DayInfo:
     """Returns dict of infos about all lessons in current day"""
     lessons = asyncio.gather(
         *[get_lesson_info(selection, date, lesson_index)
-        for lesson_index in range(1, 9)]
+          for lesson_index in range(1, 9)]
     )
     return dict(zip(range(1, 9), await lessons))
 
 
 async def get_week_info(selection: str, week_num: int = -1) -> WeekInfo:
     """Gathers info about all days and lessons in the current week"""
-    dates = await get_dates(selection, week_num)
+    dates = sorted(await get_dates(selection, week_num))
     days = asyncio.gather(*[get_day_info(selection, date) for date in dates])
     return dict(zip(dates, await days))
 
